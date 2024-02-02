@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileProviders;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json.Serialization;
 
 #region Setting up HTTP Client
@@ -59,6 +60,21 @@ if (response is not null)
     existingAssistant = await response.Content.ReadFromJsonAsync<Assistant>();  
 }
 Console.WriteLine($"Assistant ID: {existingAssistant!.Id}");
+#endregion
+
+#region Create a thread
+Console.WriteLine("Creating thread...");
+var newThreadResponse = await httpClient
+    .PostAsync("v1/threads", new StringContent("", Encoding.UTF8, "application/json"));
+newThreadResponse.EnsureSuccessStatusCode();
+var newThread = await newThreadResponse.Content.ReadFromJsonAsync<CreateThreadResult>();
+var threadId = newThread!.Id;
+
+#endregion
+
+#region Delete the thread
+Console.WriteLine("Deleting the thread...");
+await httpClient.DeleteAsync($"v1/threads/{threadId}");
 #endregion
 
 #region DTOs for OpenAI
