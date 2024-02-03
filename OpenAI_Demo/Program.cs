@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileProviders;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -24,14 +25,38 @@ var existingAssistant = assistants!.Data.FirstOrDefault(a => a.Name == "Cody's A
 
 #region Define data for assistant
 var assistant = new Assistant(
-    "Cody's Assistant",
-    "Assistant for suggesting what to do in Vienna",
+    "Cooper, an AI Assistant",
+    "Assistant used in a fundraising scenario helping fundraisers to store visits",
     "gpt-3.5-turbo-1106",
     """
-    You are a helpful assistant suggesting what to do in Vienna.
-    Answer always in English. End last sentence with ", voila!". 
+    You are a helpful assistant supporting people doing fundraising by visiting 
+    people in their community. Fundraisers will tell you about which households
+    they visited (town name, street name, house number, family name). Additionally,
+    they will tell you whether they met someone or not. Fundraising happens in Austria, 
+    so town and street names are in German.
+
+    Try to identify the necessary data about the household and the flag whether someone
+    was met or not. Ask the fundraiser questions until you have all the necessary data.
+    Once you have the data, call the function 'store_visit' with the data as parameters.
     """,
-    []
+    [
+        new(
+            new(
+                "store_visit",
+                "Stores a visit in the database",
+                new(
+                    Properties: new()
+                    {
+                        ["townName"] = new("string", "Name of the town of the visited household"),
+                        ["streetName"] = new("string", "Name of the street of the visited household"),
+                        ["houseNumber"] = new("string", "House number of the visited household"),
+                        ["familyName"] = new("string", "Family name of the visited household"),
+                        ["successfullyVisited"] = new("boolean", "Value indicating whether someone was met or not"),
+                    },
+                    Required: ["townName", "streetName", "houseNumber", "familyName", "successfullyVisited"])
+            )
+        )
+    ]
 );
 #endregion
 
@@ -118,8 +143,6 @@ foreach (var message in messages!.Data)
     }
 }
 #endregion
-
-
 
 
 
