@@ -92,8 +92,36 @@ var newRunResponse = await httpClient.PostAsJsonAsync(
 newRunResponse.EnsureSuccessStatusCode();
 var newRun = await newRunResponse.Content.ReadFromJsonAsync<Run>();
 var runId = newRun!.Id;
-Console.WriteLine($"\tRun ID: {runId}");  
+Console.WriteLine($"\tRun ID: {runId}");
 #endregion
+
+#region Wait for status completed
+Console.WriteLine("Waiting for status completed...");
+while (newRun.Status is not "completed")
+{
+    await Task.Delay(1000);
+    Console.WriteLine("\tChecking status...");
+    newRun = await httpClient.GetFromJsonAsync<Run>($"v1/threads/{threadId}/runs/{runId}");
+    Console.WriteLine($"\tStatus: {newRun!.Status}");
+}
+#endregion
+
+#region Print the message result
+Console.WriteLine("Listing messages of the thread...");
+var messages = await httpClient
+    .GetFromJsonAsync<OaiResult<Message>>($"v1/threads/{threadId}/messages");
+foreach (var message in messages!.Data)
+{
+    foreach (var content in message.Content)
+    {
+        Console.WriteLine($"\t\t{message.Role}: {content.Text.Value}");
+    }
+}
+#endregion
+
+
+
+
 
 #region Delete the thread
 Console.WriteLine("Deleting the thread...");
