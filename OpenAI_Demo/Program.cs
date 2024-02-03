@@ -20,7 +20,7 @@ httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(
 
 #region Get a list of all assistants
 var assistants = await httpClient.GetFromJsonAsync<OaiResult<Assistant>>("v1/assistants");
-var existingAssistant = assistants!.Data.FirstOrDefault(a => a.Name == "Cody's Assistant");
+var existingAssistant = assistants!.Data.FirstOrDefault(a => a.Name == "Cooper, an AI Assistant");
 #endregion
 
 #region Define data for assistant
@@ -79,13 +79,11 @@ else
     }
     else { Console.WriteLine("Assistant is up to date."); }
 }
-/*
 if (response is not null)
 {
     response?.EnsureSuccessStatusCode();
-    existingAssistant = await response?.Content.ReadFromJsonAsync<Assistant>()!;  
+    //existingAssistant = await response?.Content.ReadFromJsonAsync<Assistant>()!;  
 }
-*/
 Console.WriteLine($"Assistant ID: {existingAssistant!.Id}");
 #endregion
 
@@ -156,12 +154,14 @@ switch (newRun.Status)
             var functionArguments = run?.RequiredAction.SubmitToolOutputs?.ToolCalls[0].Function.Arguments;
             Console.WriteLine($"\tFunction name: {functionName}");
             Console.WriteLine($"\tFunction arguments: {functionArguments}");
+
+            // Business logic goes here!
+
+
             break;
         }
 }
 #endregion
-
-
 
 #region Delete the thread
 Console.WriteLine("Deleting the thread...");
