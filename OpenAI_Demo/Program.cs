@@ -54,11 +54,13 @@ else
     }
     else { Console.WriteLine("Assistant is up to date."); }
 }
+/*
 if (response is not null)
 {
-    response.EnsureSuccessStatusCode();
-    existingAssistant = await response.Content.ReadFromJsonAsync<Assistant>();  
+    response?.EnsureSuccessStatusCode();
+    existingAssistant = await response?.Content.ReadFromJsonAsync<Assistant>()!;  
 }
+*/
 Console.WriteLine($"Assistant ID: {existingAssistant!.Id}");
 #endregion
 
@@ -70,6 +72,27 @@ newThreadResponse.EnsureSuccessStatusCode();
 var newThread = await newThreadResponse.Content.ReadFromJsonAsync<CreateThreadResult>();
 var threadId = newThread!.Id;
 
+#endregion
+
+#region Add message
+Console.WriteLine("Adding message...");
+var newMsgResponse = await httpClient.PostAsJsonAsync(
+    $"v1/threads/{threadId}/messages", new CreateThreadMessage(
+        """
+        Hi! I will stay overnight in Vienna. What are the least known historical spots I can check out?
+        Let your answer be based on the least number of mentions, or some other similar metrics.
+        """));
+newMsgResponse.EnsureSuccessStatusCode();
+#endregion
+
+#region Create run
+Console.WriteLine("Creating run...");
+var newRunResponse = await httpClient.PostAsJsonAsync(
+    $"v1/threads/{threadId}/runs", new CreateRun(existingAssistant.Id!));
+newRunResponse.EnsureSuccessStatusCode();
+var newRun = await newRunResponse.Content.ReadFromJsonAsync<Run>();
+var runId = newRun!.Id;
+Console.WriteLine($"\tRun ID: {runId}");  
 #endregion
 
 #region Delete the thread
