@@ -104,7 +104,7 @@ Console.WriteLine("Adding message...");
 var newMsgResponse = await httpClient.PostAsJsonAsync(
     $"v1/threads/{threadId}/messages", new CreateThreadMessage(
         """
-        Hi! I just visited the family Tipping in Orlando at 3246 Touraine Avenue, 32812. 
+        Hi! I just visited the family Tipping in Winter Park at 1246 Easterling Way, 35212. 
         They were at home. 
         """));
 newMsgResponse.EnsureSuccessStatusCode();
@@ -150,6 +150,12 @@ switch (newRun.Status)
         }
     case "requires_action":
         {
+            Console.WriteLine("Run requires actions. Retrieving run details...");
+            var run = await httpClient.GetFromJsonAsync<Run>($"v1/threads/{threadId}/runs/{runId}");
+            var functionName = run?.RequiredAction.SubmitToolOutputs?.ToolCalls[0].Function.Name;
+            var functionArguments = run?.RequiredAction.SubmitToolOutputs?.ToolCalls[0].Function.Arguments;
+            Console.WriteLine($"\tFunction name: {functionName}");
+            Console.WriteLine($"\tFunction arguments: {functionArguments}");
             break;
         }
 }
