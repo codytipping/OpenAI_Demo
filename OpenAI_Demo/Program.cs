@@ -32,8 +32,8 @@ var assistant = new Assistant(
     You are a helpful assistant supporting people doing fundraising by visiting 
     people in their community. Fundraisers will tell you about which households
     they visited (town name, street name, house number, family name). Additionally,
-    they will tell you whether they met someone or not. Fundraising happens in Austria, 
-    so town and street names are in German.
+    they will tell you whether they met someone or not. Fundraising happens in Orlando, Florida,
+    so town and street names are in English.
 
     Try to identify the necessary data about the household and the flag whether someone
     was met or not. Ask the fundraiser questions until you have all the necessary data.
@@ -104,8 +104,8 @@ Console.WriteLine("Adding message...");
 var newMsgResponse = await httpClient.PostAsJsonAsync(
     $"v1/threads/{threadId}/messages", new CreateThreadMessage(
         """
-        Hi! I will stay overnight in Vienna. What are the least known historical spots I can check out?
-        Let your answer be based on the least number of mentions, or some other similar metrics.
+        Hi! I just visited the family Tipping in Orlando at 3246 Touraine Avenue, 32812. 
+        They were at home. 
         """));
 newMsgResponse.EnsureSuccessStatusCode();
 #endregion
@@ -122,7 +122,7 @@ Console.WriteLine($"\tRun ID: {runId}");
 
 #region Wait for status completed
 Console.WriteLine("Waiting for status completed...");
-while (newRun.Status is not "completed")
+while (newRun.Status is not "completed" and not "requires_action")
 {
     await Task.Delay(1000);
     Console.WriteLine("\tChecking status...");
@@ -132,15 +132,26 @@ while (newRun.Status is not "completed")
 #endregion
 
 #region Print the message result
-Console.WriteLine("Listing messages of the thread...");
-var messages = await httpClient
-    .GetFromJsonAsync<OaiResult<Message>>($"v1/threads/{threadId}/messages");
-foreach (var message in messages!.Data)
+switch (newRun.Status)
 {
-    foreach (var content in message.Content)
-    {
-        Console.WriteLine($"\t\t{message.Role}: {content.Text.Value}");
-    }
+    case "completed":
+        {
+            Console.WriteLine("Listing messages of the thread...");
+            var messages = await httpClient
+                .GetFromJsonAsync<OaiResult<Message>>($"v1/threads/{threadId}/messages");
+            foreach (var message in messages!.Data)
+            {
+                foreach (var content in message.Content)
+                {
+                    Console.WriteLine($"\t\t{message.Role}: {content.Text.Value}");
+                }
+            }
+            break;
+        }
+    case "requires_action":
+        {
+            break;
+        }
 }
 #endregion
 
